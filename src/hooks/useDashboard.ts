@@ -3,10 +3,15 @@ import { generateDailyMetrics, getKPIs, campaigns as mockCampaigns } from '../da
 import type { Campaign, DailyMetric } from '../data/mockData';
 import { fetchDashboardOverview } from '../services/api';
 
-export type Period = '7d' | '14d' | '30d' | '90d';
+export type Period = '7d' | '14d' | '30d' | '90d' | 'custom';
 export type Platform = 'all' | 'meta' | 'google';
 
-const periodDays: Record<Period, number> = {
+export interface CustomDateRange {
+  since: string; // YYYY-MM-DD
+  until: string; // YYYY-MM-DD
+}
+
+const periodDays: Record<string, number> = {
   '7d': 7,
   '14d': 14,
   '30d': 30,
@@ -124,6 +129,7 @@ function parseGoogleCampaigns(data: any): Campaign[] {
 
 export function useDashboard() {
   const [period, setPeriod] = useState<Period>('7d');
+  const [customDateRange, setCustomDateRange] = useState<CustomDateRange | null>(null);
   const [platform, setPlatform] = useState<Platform>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState('all');
@@ -142,8 +148,12 @@ export function useDashboard() {
     setError(null);
 
     try {
-      console.log('[GestorDash] Fetching from API...', { period, platform });
-      const overview = await fetchDashboardOverview(period, platform);
+      console.log('[GestorDash] Fetching from API...', { period, platform, customDateRange });
+      const overview = await fetchDashboardOverview(
+        period,
+        platform,
+        period === 'custom' && customDateRange ? customDateRange : undefined
+      );
       console.log('[GestorDash] API response:', overview);
 
       // Parse daily metrics from Meta insights
@@ -176,7 +186,7 @@ export function useDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [period, platform]);
+  }, [period, platform, customDateRange]);
 
   useEffect(() => {
     fetchData();
@@ -185,7 +195,7 @@ export function useDashboard() {
   // Use API data when available, fallback to mock
   const campaigns = apiCampaigns || mockCampaigns;
   const dailyMetrics = useMemo(() => {
-    return apiDailyMetrics || generateDailyMetrics(periodDays[period]);
+    return apiDailyMetrics || generateDailyMetrics(periodDays[period] || 30);
   }, [apiDailyMetrics, period]);
 
   // Filter campaigns based on all active filters
@@ -274,6 +284,8 @@ export function useDashboard() {
   return {
     period,
     setPeriod,
+    customDateRange,
+    setCustomDateRange,
     platform,
     setPlatform,
     searchQuery,

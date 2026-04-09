@@ -6,7 +6,7 @@ import {
 import { MetaLogo } from '../icons/MetaLogo';
 import { GoogleAdsLogo } from '../icons/GoogleAdsLogo';
 import { AppLogo } from '../icons/AppLogo';
-import type { Period, Platform } from '../../hooks/useDashboard';
+import type { Period, Platform, CustomDateRange } from '../../hooks/useDashboard';
 import { AccountSwitcher } from '../ui/AccountSwitcher';
 import { NotificationsPanel } from '../ui/NotificationsPanel';
 import styles from './TopBar.module.css';
@@ -39,6 +39,8 @@ interface TopBarProps {
   onPageChange?: (page: string) => void;
   period: Period;
   onPeriodChange: (p: Period) => void;
+  customDateRange: CustomDateRange | null;
+  onCustomDateRangeChange: (range: CustomDateRange) => void;
   platform: Platform;
   onPlatformChange: (p: Platform) => void;
   selectedCampaign: string;
@@ -59,6 +61,8 @@ export function TopBar({
   onPageChange,
   period,
   onPeriodChange,
+  customDateRange,
+  onCustomDateRangeChange,
   platform,
   onPlatformChange,
   selectedCampaign,
@@ -116,7 +120,43 @@ export function TopBar({
                 <span style={{ position: 'relative', zIndex: 1 }}>{p.label}</span>
               </button>
             ))}
+            <button
+              className={`${styles.periodBtn} ${period === 'custom' ? styles.periodActive : ''}`}
+              onClick={() => onPeriodChange('custom')}
+            >
+              {period === 'custom' && (
+                <motion.div
+                  className={styles.periodBg}
+                  layoutId="periodActive"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span style={{ position: 'relative', zIndex: 1 }}>Custom</span>
+            </button>
           </div>
+          {period === 'custom' && (
+            <div className={styles.dateRange}>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={customDateRange?.since || ''}
+                onChange={(e) => onCustomDateRangeChange({
+                  since: e.target.value,
+                  until: customDateRange?.until || e.target.value,
+                })}
+              />
+              <span className={styles.dateSep}>-</span>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={customDateRange?.until || ''}
+                onChange={(e) => onCustomDateRangeChange({
+                  since: customDateRange?.since || e.target.value,
+                  until: e.target.value,
+                })}
+              />
+            </div>
+          )}
         </div>
 
         <div className={styles.filterDivider} />

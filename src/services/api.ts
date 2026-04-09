@@ -74,8 +74,17 @@ export async function apiFetch<T = any>(endpoint: string, params?: Record<string
   return res.json();
 }
 
-export async function fetchDashboardOverview(period: string, platform: string) {
-  return apiFetch('/dashboard/overview', { period, platform });
+export async function fetchDashboardOverview(
+  period: string,
+  platform: string,
+  dateRange?: { since: string; until: string }
+) {
+  const params: Record<string, string> = { period, platform };
+  if (dateRange) {
+    params.since = dateRange.since;
+    params.until = dateRange.until;
+  }
+  return apiFetch('/dashboard/overview', params);
 }
 
 export async function fetchMetaInsights(period: string) {

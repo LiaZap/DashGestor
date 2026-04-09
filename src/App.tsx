@@ -28,6 +28,8 @@ export default function App() {
   const {
     period,
     setPeriod,
+    customDateRange,
+    setCustomDateRange,
     platform,
     setPlatform,
     searchQuery,
@@ -130,6 +132,8 @@ export default function App() {
           onPageChange={setActivePage}
           period={period}
           onPeriodChange={setPeriod}
+          customDateRange={customDateRange}
+          onCustomDateRangeChange={setCustomDateRange}
           platform={platform}
           onPlatformChange={setPlatform}
           selectedCampaign={selectedCampaign}

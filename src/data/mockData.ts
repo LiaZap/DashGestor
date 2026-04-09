@@ -338,11 +338,11 @@ export const budgetData = [
 ];
 
 export const funnelData = [
-  { label: 'Impressões', value: 1245832, color: '#6366f1' },
-  { label: 'Alcance', value: 971749, color: '#8b5cf6' },
-  { label: 'Cliques', value: 34521, color: '#06b6d4' },
-  { label: 'Leads', value: 3452, color: '#10b981' },
-  { label: 'Conversões', value: 847, color: '#f59e0b' },
+  { label: 'Impressões', value: 1245832, color: '#6366f1', isPercent: false },
+  { label: 'Alcance', value: 971749, color: '#06b6d4', isPercent: false },
+  { label: 'Cliques', value: 34521, color: '#84cc16', isPercent: false },
+  { label: 'CTR', value: 2.77, color: '#eab308', isPercent: true },
+  { label: 'Conversões', value: 847, color: '#f59e0b', isPercent: false },
 ];
 
 export const objectiveData = [

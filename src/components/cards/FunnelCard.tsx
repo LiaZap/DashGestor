@@ -10,10 +10,18 @@ const FUNNEL_COLORS = [
   { main: '#06b6d4', light: '#22d3ee', dark: '#0e7490', shine: '#67e8f9' },
   { main: '#84cc16', light: '#a3e635', dark: '#4d7c0f', shine: '#bef264' },
   { main: '#eab308', light: '#facc15', dark: '#a16207', shine: '#fde047' },
-  { main: '#ef4444', light: '#f87171', dark: '#b91c1c', shine: '#fca5a5' },
+  { main: '#f59e0b', light: '#fbbf24', dark: '#b45309', shine: '#fde68a' },
 ];
 
-const costLabels = ['CPM', 'Custo/Clique', 'Custo/Page View', 'Custo/Lead', 'Custo/Conversão'];
+const costLabels = ['CPM', 'Custo/Alcance', 'Custo/Clique', 'CTR', 'Custo/Conversão'];
+
+const stepDescriptions: Record<string, string> = {
+  'Impressões': 'Quantas vezes seu anúncio foi exibido',
+  'Alcance': 'Pessoas únicas que viram seu anúncio',
+  'Cliques': 'Cliques no link do anúncio',
+  'CTR': 'Taxa de cliques sobre impressões',
+  'Conversões': 'Mensagens iniciadas no WhatsApp',
+};
 
 interface FunnelCardProps {
   dailyMetrics?: DailyMetric[];
@@ -30,16 +38,18 @@ export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
     const totalClicks = dailyMetrics.reduce((s, m) => s + m.clicks, 0);
     const totalConversions = dailyMetrics.reduce((s, m) => s + m.conversions, 0);
 
-    // Estimate intermediate funnel steps from real data
+    // Estimate reach from real data
     const reach = Math.round(totalImpressions * 0.78);
-    const leads = Math.max(Math.round(totalConversions * 4), Math.round(totalClicks * 0.15));
+    const ctr = totalImpressions > 0
+      ? parseFloat(((totalClicks / totalImpressions) * 100).toFixed(2))
+      : 0;
 
     return [
-      { label: 'Impressões', value: totalImpressions, color: '#6366f1' },
-      { label: 'Alcance', value: reach, color: '#8b5cf6' },
-      { label: 'Cliques', value: totalClicks, color: '#06b6d4' },
-      { label: 'Leads', value: leads, color: '#10b981' },
-      { label: 'Conversões', value: totalConversions, color: '#f59e0b' },
+      { label: 'Impressões', value: totalImpressions, color: '#6366f1', isPercent: false },
+      { label: 'Alcance', value: reach, color: '#06b6d4', isPercent: false },
+      { label: 'Cliques', value: totalClicks, color: '#84cc16', isPercent: false },
+      { label: 'CTR', value: ctr, color: '#eab308', isPercent: true },
+      { label: 'Conversões', value: totalConversions, color: '#f59e0b', isPercent: false },
     ];
   }, [dailyMetrics]);
 
@@ -84,8 +94,7 @@ export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
       <div className={styles.header}>
         <h3 className={styles.title}>Funil Geral</h3>
         <select className={styles.typeSelect}>
-          <option>Tipo: E-Commerce</option>
-          <option>Tipo: Lead Gen</option>
+          <option>Tipo: Lead Gen (WhatsApp)</option>
         </select>
       </div>
 
@@ -222,15 +231,32 @@ export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
                   {/* Text - Value */}
                   <text
                     x={centerX}
-                    y={(y1 + y2) / 2 + 10}
+                    y={(y1 + y2) / 2 + (isHovered ? 8 : 10)}
                     textAnchor="middle"
                     fill="#ffffff"
                     fontSize={isHovered ? 18 : 16}
                     fontWeight="800"
                     fontFamily="Inter"
                   >
-                    {step.value.toLocaleString('pt-BR')}
+                    {(step as any).isPercent
+                      ? `${step.value.toLocaleString('pt-BR')}%`
+                      : step.value.toLocaleString('pt-BR')}
                   </text>
+
+                  {/* Description on hover */}
+                  {isHovered && (
+                    <text
+                      x={centerX}
+                      y={(y1 + y2) / 2 + 22}
+                      textAnchor="middle"
+                      fill="rgba(255,255,255,0.5)"
+                      fontSize={7.5}
+                      fontWeight="400"
+                      fontFamily="Inter"
+                    >
+                      {stepDescriptions[step.label] || ''}
+                    </text>
+                  )}
                 </motion.g>
               );
             })}
@@ -253,10 +279,12 @@ export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
         {/* Side metrics */}
         <div className={styles.sideMetrics}>
           {funnelData.map((step, i) => {
-            const rate = i > 0
+            const isCtr = step.label === 'CTR';
+            const prevIsPercent = i > 0 && (funnelData[i - 1] as any).isPercent;
+            const rate = i > 0 && !isCtr && !prevIsPercent
               ? ((step.value / funnelData[i - 1].value) * 100).toFixed(1)
               : null;
-            const costPer = step.value > 0
+            const costPer = !isCtr && step.value > 0
               ? (spend / step.value).toFixed(2).replace('.', ',')
               : '0,00';
             const isHovered = hoveredIndex === i;
@@ -298,9 +326,12 @@ export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
                     className={styles.costValue}
                     style={isHovered ? { color: FUNNEL_COLORS[i].light } : undefined}
                   >
-                    R$ {costPer}
+                    {isCtr ? `${step.value.toLocaleString('pt-BR')}%` : `R$ ${costPer}`}
                   </span>
                 </div>
+                <span className={styles.costDesc}>
+                  {stepDescriptions[step.label]}
+                </span>
               </motion.div>
             );
           })}
