@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, Image, Video, LayoutGrid, Type, ShoppingBag, Layers } from 'lucide-react';
 import { GlassCard } from '../ui/GlassCard';
+import type { Campaign } from '../../data/mockData';
 import styles from './AnunciosPage.module.css';
 
 type Platform = 'meta' | 'google';
@@ -24,20 +25,32 @@ interface Ad {
   roas: number;
 }
 
-const mockAds: Ad[] = [
-  { id: '1', name: 'Carrossel - Produtos Top', campaign: 'Remarketing - Carrinho Abandonado', platform: 'meta', status: 'active', type: 'carousel', impressions: 45230, clicks: 1823, ctr: 4.03, conversions: 67, cpa: 12.40, roas: 7.85 },
-  { id: '2', name: 'Video 15s - Oferta Flash', campaign: 'Stories - Promoção Semanal', platform: 'meta', status: 'active', type: 'video', impressions: 32100, clicks: 1205, ctr: 3.75, conversions: 34, cpa: 15.20, roas: 4.12 },
-  { id: '3', name: 'Imagem - Banner Principal', campaign: 'Brand - Institucional', platform: 'google', status: 'active', type: 'image', impressions: 67890, clicks: 2345, ctr: 3.45, conversions: 89, cpa: 10.50, roas: 8.20 },
-  { id: '4', name: 'Responsive Search Ad', campaign: 'Search - Produto Principal', platform: 'google', status: 'active', type: 'text', impressions: 23456, clicks: 1890, ctr: 8.06, conversions: 45, cpa: 18.90, roas: 5.10 },
-  { id: '5', name: 'Reels - UGC Review', campaign: 'Reels - Criativo A/B Test', platform: 'meta', status: 'active', type: 'video', impressions: 89000, clicks: 3200, ctr: 3.60, conversions: 42, cpa: 16.30, roas: 3.80 },
-  { id: '6', name: 'Shopping - Produto A', campaign: 'Shopping - Catálogo Completo', platform: 'google', status: 'active', type: 'shopping', impressions: 56780, clicks: 2100, ctr: 3.70, conversions: 78, cpa: 11.20, roas: 7.50 },
-  { id: '7', name: 'Stories - Countdown', campaign: 'Stories - Promoção Semanal', platform: 'meta', status: 'paused', type: 'video', impressions: 18900, clicks: 670, ctr: 3.54, conversions: 12, cpa: 22.10, roas: 2.30 },
-  { id: '8', name: 'Display Banner 728x90', campaign: 'Display - Remarketing GDN', platform: 'google', status: 'paused', type: 'image', impressions: 145000, clicks: 890, ctr: 0.61, conversions: 15, cpa: 25.40, roas: 1.80 },
-  { id: '9', name: 'Feed - Depoimento Cliente', campaign: 'Lookalike 1% - Compradores', platform: 'meta', status: 'active', type: 'image', impressions: 41200, clicks: 1560, ctr: 3.79, conversions: 55, cpa: 13.80, roas: 6.20 },
-  { id: '10', name: 'PMax - Asset Group 1', campaign: 'Performance Max - Geral', platform: 'google', status: 'active', type: 'responsive', impressions: 98700, clicks: 3450, ctr: 3.50, conversions: 112, cpa: 9.80, roas: 8.90 },
-  { id: '11', name: 'Carrossel - Lookbook', campaign: 'Interesse - Público Frio', platform: 'meta', status: 'active', type: 'carousel', impressions: 67800, clicks: 1890, ctr: 2.79, conversions: 28, cpa: 19.50, roas: 3.40 },
-  { id: '12', name: 'Video 30s - Marca', campaign: 'Brand - Institucional', platform: 'google', status: 'active', type: 'video', impressions: 34500, clicks: 980, ctr: 2.84, conversions: 23, cpa: 21.30, roas: 2.90 },
-];
+function guessAdType(campaign: Campaign): AdType {
+  const name = campaign.name.toLowerCase();
+  if (name.includes('shopping') || name.includes('catálogo')) return 'shopping';
+  if (name.includes('pmax') || name.includes('performance max')) return 'responsive';
+  if (name.includes('video') || name.includes('reels') || name.includes('stories')) return 'video';
+  if (name.includes('carrossel') || name.includes('carousel')) return 'carousel';
+  if (name.includes('search') || name.includes('texto')) return 'text';
+  return 'image';
+}
+
+function campaignsToAds(campaigns: Campaign[]): Ad[] {
+  return campaigns.map((c) => ({
+    id: c.id,
+    name: c.name,
+    campaign: c.name,
+    platform: c.platform,
+    status: c.status === 'ended' ? 'paused' as const : c.status,
+    type: guessAdType(c),
+    impressions: c.impressions,
+    clicks: c.clicks,
+    ctr: c.ctr,
+    conversions: c.conversions,
+    cpa: c.cpa,
+    roas: c.roas,
+  }));
+}
 
 const typeGradients: Record<AdType, string> = {
   carousel: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
@@ -84,14 +97,20 @@ function roasClass(roas: number): string {
   return styles.roasLow;
 }
 
-export function AnunciosPage() {
+interface AnunciosPageProps {
+  campaigns: Campaign[];
+}
+
+export function AnunciosPage({ campaigns }: AnunciosPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [platformFilter, setPlatformFilter] = useState<'all' | Platform>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | Status>('all');
   const [sortBy, setSortBy] = useState<SortKey>('roas');
 
+  const ads = useMemo(() => campaignsToAds(campaigns), [campaigns]);
+
   const filtered = useMemo(() => {
-    const result = mockAds.filter((ad) => {
+    const result = ads.filter((ad) => {
       if (searchQuery && !ad.name.toLowerCase().includes(searchQuery.toLowerCase()) && !ad.campaign.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       if (platformFilter !== 'all' && ad.platform !== platformFilter) return false;
       if (statusFilter !== 'all' && ad.status !== statusFilter) return false;
@@ -109,7 +128,7 @@ export function AnunciosPage() {
     });
 
     return result;
-  }, [searchQuery, platformFilter, statusFilter, sortBy]);
+  }, [ads, searchQuery, platformFilter, statusFilter, sortBy]);
 
   return (
     <div className={styles.page}>

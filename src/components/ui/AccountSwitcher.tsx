@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Plus } from 'lucide-react';
+import { Check, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { isMetaConfigured, isGoogleConfigured, getMetaConfig } from '../../services/apiConfig';
 import styles from './AccountSwitcher.module.css';
 
 interface Account {
@@ -9,38 +10,58 @@ interface Account {
   name: string;
   avatar: string;
   platform: string;
-  spent: number;
   active: boolean;
 }
 
-const mockAccounts: Account[] = [
-  { id: '1', name: 'Loja Principal', avatar: 'LP', platform: 'Meta + Google', spent: 18420, active: true },
-  { id: '2', name: 'E-commerce BR', avatar: 'EB', platform: 'Meta Ads', spent: 8500, active: false },
-  { id: '3', name: 'Marketplace SP', avatar: 'MS', platform: 'Google Ads', spent: 12300, active: false },
-];
+function buildAccounts(): Account[] {
+  const accounts: Account[] = [];
+  const metaConfig = getMetaConfig();
 
-function formatCurrency(value: number): string {
-  return `R$ ${value.toLocaleString('pt-BR')}`;
+  if (isMetaConfigured() && metaConfig) {
+    accounts.push({
+      id: 'meta',
+      name: `Meta Ads`,
+      avatar: 'MA',
+      platform: `act_${metaConfig.adAccountId.replace('act_', '')}`,
+      active: true,
+    });
+  }
+
+  if (isGoogleConfigured()) {
+    accounts.push({
+      id: 'google',
+      name: 'Google Ads',
+      avatar: 'GA',
+      platform: 'Conectado',
+      active: true,
+    });
+  }
+
+  if (accounts.length === 0) {
+    accounts.push({
+      id: 'none',
+      name: 'Nenhuma conta',
+      avatar: '?',
+      platform: 'Configure nas Configurações',
+      active: false,
+    });
+  }
+
+  return accounts;
 }
 
 interface AccountSwitcherProps {
   trigger: (onClick: () => void) => ReactNode;
+  onGoToSettings?: () => void;
 }
 
-export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
+export function AccountSwitcher({ trigger, onGoToSettings }: AccountSwitcherProps) {
   const [open, setOpen] = useState(false);
-  const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
+  const accounts = buildAccounts();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = useCallback(() => {
     setOpen((prev) => !prev);
-  }, []);
-
-  const handleSelect = useCallback((id: string) => {
-    setAccounts((prev) =>
-      prev.map((acc) => ({ ...acc, active: acc.id === id }))
-    );
-    setOpen(false);
   }, []);
 
   useEffect(() => {
@@ -69,14 +90,12 @@ export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
           >
-            <div className={styles.dropdownLabel}>Contas</div>
+            <div className={styles.dropdownLabel}>Contas Conectadas</div>
             <div className={styles.accountList}>
               {accounts.map((acc) => (
-                <button
+                <div
                   key={acc.id}
-                  type="button"
                   className={`${styles.accountItem} ${acc.active ? styles.accountItemActive : ''}`}
-                  onClick={() => handleSelect(acc.id)}
                 >
                   <div className={`${styles.avatar} ${acc.active ? styles.avatarActive : styles.avatarInactive}`}>
                     {acc.avatar}
@@ -85,15 +104,18 @@ export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
                     <div className={styles.accountName}>{acc.name}</div>
                     <div className={styles.accountPlatform}>{acc.platform}</div>
                   </div>
-                  <div className={styles.accountSpent}>{formatCurrency(acc.spent)}</div>
                   {acc.active && <Check size={16} className={styles.checkIcon} />}
-                </button>
+                </div>
               ))}
             </div>
             <div className={styles.divider} />
-            <button type="button" className={styles.addBtn}>
-              <Plus size={14} />
-              Adicionar Conta
+            <button
+              type="button"
+              className={styles.addBtn}
+              onClick={() => { setOpen(false); onGoToSettings?.(); }}
+            >
+              <Settings size={14} />
+              Configurações de API
             </button>
           </motion.div>
         )}

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '../ui/GlassCard';
-import { funnelData } from '../../data/mockData';
+import { funnelData as defaultFunnelData } from '../../data/mockData';
+import type { DailyMetric } from '../../data/mockData';
 import styles from './FunnelCard.module.css';
 
 const FUNNEL_COLORS = [
@@ -14,8 +15,35 @@ const FUNNEL_COLORS = [
 
 const costLabels = ['CPM', 'Custo/Clique', 'Custo/Page View', 'Custo/Lead', 'Custo/Conversão'];
 
-export function FunnelCard() {
+interface FunnelCardProps {
+  dailyMetrics?: DailyMetric[];
+  totalSpend?: number;
+}
+
+export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const funnelData = useMemo(() => {
+    if (!dailyMetrics || dailyMetrics.length === 0) return defaultFunnelData;
+
+    const totalImpressions = dailyMetrics.reduce((s, m) => s + m.impressions, 0);
+    const totalClicks = dailyMetrics.reduce((s, m) => s + m.clicks, 0);
+    const totalConversions = dailyMetrics.reduce((s, m) => s + m.conversions, 0);
+
+    // Estimate intermediate funnel steps from real data
+    const reach = Math.round(totalImpressions * 0.78);
+    const leads = Math.max(Math.round(totalConversions * 4), Math.round(totalClicks * 0.15));
+
+    return [
+      { label: 'Impressões', value: totalImpressions, color: '#6366f1' },
+      { label: 'Alcance', value: reach, color: '#8b5cf6' },
+      { label: 'Cliques', value: totalClicks, color: '#06b6d4' },
+      { label: 'Leads', value: leads, color: '#10b981' },
+      { label: 'Conversões', value: totalConversions, color: '#f59e0b' },
+    ];
+  }, [dailyMetrics]);
+
+  const spend = totalSpend ?? 12450;
   const totalSteps = funnelData.length;
 
   // SVG dimensions
@@ -229,7 +257,7 @@ export function FunnelCard() {
               ? ((step.value / funnelData[i - 1].value) * 100).toFixed(1)
               : null;
             const costPer = step.value > 0
-              ? (12450 / step.value).toFixed(2).replace('.', ',')
+              ? (spend / step.value).toFixed(2).replace('.', ',')
               : '0,00';
             const isHovered = hoveredIndex === i;
             const isDimmed = hoveredIndex !== null && hoveredIndex !== i;

@@ -1,23 +1,39 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '../ui/GlassCard';
-import { budgetData } from '../../data/mockData';
+import type { Campaign } from '../../data/mockData';
 import styles from './BudgetCard.module.css';
 
-export function BudgetCard() {
-  const totalSpent = budgetData.reduce((s, b) => s + b.spent, 0);
-  const totalBudget = budgetData.reduce((s, b) => s + b.total, 0);
+interface BudgetCardProps {
+  campaigns: Campaign[];
+}
 
-  const allBars = [
-    ...budgetData,
-    { label: 'Total', spent: totalSpent, total: totalBudget, color: '#f59e0b' },
-  ];
+export function BudgetCard({ campaigns }: BudgetCardProps) {
+  const bars = useMemo(() => {
+    const meta = campaigns.filter(c => c.platform === 'meta');
+    const google = campaigns.filter(c => c.platform === 'google');
+    const metaSpent = meta.reduce((s, c) => s + c.spent, 0);
+    const metaBudget = meta.reduce((s, c) => s + c.budget, 0);
+    const googleSpent = google.reduce((s, c) => s + c.spent, 0);
+    const googleBudget = google.reduce((s, c) => s + c.budget, 0);
+
+    const items = [];
+    if (metaBudget > 0) items.push({ label: 'Meta Ads', spent: metaSpent, total: metaBudget, color: '#6366f1' });
+    if (googleBudget > 0) items.push({ label: 'Google Ads', spent: googleSpent, total: googleBudget, color: '#10b981' });
+
+    const totalSpent = metaSpent + googleSpent;
+    const totalBudget = metaBudget + googleBudget;
+    if (totalBudget > 0) items.push({ label: 'Total', spent: totalSpent, total: totalBudget, color: '#f59e0b' });
+
+    return items;
+  }, [campaigns]);
 
   return (
     <GlassCard delay={0.45}>
       <h3 className={styles.title}>Consumo do Orçamento</h3>
       <div className={styles.bars}>
-        {allBars.map((item, i) => {
-          const percent = (item.spent / item.total) * 100;
+        {bars.map((item, i) => {
+          const percent = item.total > 0 ? (item.spent / item.total) * 100 : 0;
           return (
             <div key={item.label} className={styles.barItem}>
               <div className={styles.barInfo}>

@@ -1,12 +1,29 @@
+import { useMemo } from 'react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
   ResponsiveContainer, Tooltip,
 } from 'recharts';
 import { GlassCard } from '../ui/GlassCard';
-import { objectiveData } from '../../data/mockData';
+import type { Campaign } from '../../data/mockData';
 import styles from './Charts.module.css';
 
-export function ObjectiveChart() {
+interface ObjectiveChartProps {
+  campaigns: Campaign[];
+}
+
+export function ObjectiveChart({ campaigns }: ObjectiveChartProps) {
+  const data = useMemo(() => {
+    const map = new Map<string, number>();
+    campaigns.forEach((c) => {
+      map.set(c.objective, (map.get(c.objective) ?? 0) + c.spent);
+    });
+    const total = campaigns.reduce((s, c) => s + c.spent, 0);
+    return Array.from(map.entries()).map(([name, spent]) => ({
+      name,
+      value: total > 0 ? Math.round((spent / total) * 100) : 0,
+    }));
+  }, [campaigns]);
+
   return (
     <GlassCard delay={0.45}>
       <div className={styles.header}>
@@ -14,7 +31,7 @@ export function ObjectiveChart() {
       </div>
       <div className={styles.chartContainer}>
         <ResponsiveContainer width="100%" height={220}>
-          <RadarChart cx="50%" cy="50%" outerRadius="72%" data={objectiveData}>
+          <RadarChart cx="50%" cy="50%" outerRadius="72%" data={data}>
             <PolarGrid stroke="rgba(255, 215, 0, 0.08)" />
             <PolarAngleAxis
               dataKey="name"

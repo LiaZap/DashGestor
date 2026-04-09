@@ -14,7 +14,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { GlassCard } from '../ui/GlassCard';
-import { campaigns, budgetData } from '../../data/mockData';
+import type { Campaign } from '../../data/mockData';
 import styles from './OrcamentoPage.module.css';
 
 function fmt(value: number): string {
@@ -37,10 +37,24 @@ function barColor(pct: number): string {
   return '#22c55e';
 }
 
-export function OrcamentoPage() {
+interface OrcamentoPageProps {
+  campaigns: Campaign[];
+}
+
+export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
   const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
   const saldo = totalBudget - totalSpent;
+
+  // Platform budget breakdown
+  const platformBudget = useMemo(() => {
+    const meta = campaigns.filter(c => c.platform === 'meta');
+    const google = campaigns.filter(c => c.platform === 'google');
+    return [
+      { label: 'Meta Ads', spent: meta.reduce((s, c) => s + c.spent, 0), total: meta.reduce((s, c) => s + c.budget, 0), color: '#6366f1' },
+      { label: 'Google Ads', spent: google.reduce((s, c) => s + c.spent, 0), total: google.reduce((s, c) => s + c.budget, 0), color: '#10b981' },
+    ].filter(p => p.total > 0);
+  }, [campaigns]);
 
   // Budget allocation by objective
   const objectiveAllocation = useMemo(() => {
@@ -54,18 +68,23 @@ export function OrcamentoPage() {
       'Brand': '#06b6d4',
       'Remarketing': '#8b5cf6',
       'Engajamento': '#f59e0b',
+      'OUTCOME_LEADS': '#6366f1',
+      'OUTCOME_TRAFFIC': '#10b981',
+      'OUTCOME_AWARENESS': '#06b6d4',
+      'OUTCOME_ENGAGEMENT': '#f59e0b',
+      'OUTCOME_SALES': '#8b5cf6',
     };
     return Array.from(map.entries()).map(([name, value]) => ({
       name,
       value,
       color: colors[name] ?? '#888',
     }));
-  }, []);
+  }, [campaigns]);
 
   // Projected vs actual spend over 30 days
   const projectedData = useMemo(() => {
-    const dailyBudget = totalBudget / 30;
-    const dailyActual = totalSpent / 30;
+    const dailyBudget = totalBudget > 0 ? totalBudget / 30 : 1;
+    const dailyActual = totalSpent > 0 ? totalSpent / 30 : 1;
     return Array.from({ length: 30 }, (_, i) => {
       const day = i + 1;
       const noise = 0.85 + Math.sin(day * 0.7) * 0.15 + (day % 7 < 2 ? -0.1 : 0.05);
@@ -120,8 +139,8 @@ export function OrcamentoPage() {
         <GlassCard delay={0.2} padding="16px">
           <div className={styles.cardTitle}>Consumo por Plataforma</div>
           <div className={styles.platformBars}>
-            {budgetData.map((item, i) => {
-              const pct = (item.spent / item.total) * 100;
+            {platformBudget.map((item, i) => {
+              const pct = item.total > 0 ? (item.spent / item.total) * 100 : 0;
               return (
                 <div key={item.label} className={styles.platformItem}>
                   <div className={styles.platformInfo}>
@@ -211,7 +230,7 @@ export function OrcamentoPage() {
             </thead>
             <tbody>
               {campaigns.map((c) => {
-                const pct = (c.spent / c.budget) * 100;
+                const pct = c.budget > 0 ? (c.spent / c.budget) * 100 : 0;
                 const remaining = c.budget - c.spent;
                 return (
                   <tr key={c.id}>

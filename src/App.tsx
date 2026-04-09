@@ -57,9 +57,9 @@ export default function App() {
       case 'campanhas':
         return <CampanhasPage campaigns={filteredCampaigns} />;
       case 'anuncios':
-        return <AnunciosPage />;
+        return <AnunciosPage campaigns={filteredCampaigns} />;
       case 'orcamento':
-        return <OrcamentoPage />;
+        return <OrcamentoPage campaigns={filteredCampaigns} />;
       case 'relatorios':
         return <div className={styles.settingsPage}><ApiSettings /></div>;
       default:
@@ -80,7 +80,7 @@ export default function App() {
 
               {/* Center: Funnel */}
               <div className={styles.funnelSection}>
-                <FunnelCard />
+                <FunnelCard dailyMetrics={dailyMetrics} totalSpend={kpis[0]?.rawValue} />
               </div>
 
               {/* Right: Top Campaigns */}
@@ -107,8 +107,8 @@ export default function App() {
 
             {/* Row 4: Budget + Objective */}
             <section className={styles.chartsRow}>
-              <BudgetCard />
-              <ObjectiveChart />
+              <BudgetCard campaigns={filteredCampaigns} />
+              <ObjectiveChart campaigns={filteredCampaigns} />
             </section>
           </>
         );
