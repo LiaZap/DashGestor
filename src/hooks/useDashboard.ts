@@ -25,14 +25,28 @@ function parseMetaInsights(data: any): DailyMetric[] {
     const actionValues = row.action_values || [];
 
     const conversions = actions.reduce((sum: number, a: any) => {
-      if (['offsite_conversion.fb_pixel_purchase', 'lead', 'complete_registration', 'purchase'].includes(a.action_type)) {
+      if ([
+          'onsite_conversion.messaging_conversation_started_7d',
+          'onsite_conversion.messaging_first_reply',
+          'offsite_conversion.fb_pixel_purchase',
+          'offsite_conversion.fb_pixel_lead',
+          'lead',
+          'complete_registration',
+          'purchase',
+          'contact',
+          'submit_application',
+        ].includes(a.action_type)) {
         return sum + parseInt(a.value || '0');
       }
       return sum;
     }, 0);
 
     const revenue = actionValues.reduce((sum: number, a: any) => {
-      if (['offsite_conversion.fb_pixel_purchase', 'purchase'].includes(a.action_type)) {
+      if ([
+          'offsite_conversion.fb_pixel_purchase',
+          'purchase',
+          'onsite_conversion.messaging_conversation_started_7d',
+        ].includes(a.action_type)) {
         return sum + parseFloat(a.value || '0');
       }
       return sum;
@@ -65,14 +79,28 @@ function parseMetaCampaigns(data: any): Campaign[] {
     const actionValues = insights.action_values || [];
 
     const conversions = actions.reduce((sum: number, a: any) => {
-      if (['offsite_conversion.fb_pixel_purchase', 'lead', 'complete_registration', 'purchase'].includes(a.action_type)) {
+      if ([
+          'onsite_conversion.messaging_conversation_started_7d',
+          'onsite_conversion.messaging_first_reply',
+          'offsite_conversion.fb_pixel_purchase',
+          'offsite_conversion.fb_pixel_lead',
+          'lead',
+          'complete_registration',
+          'purchase',
+          'contact',
+          'submit_application',
+        ].includes(a.action_type)) {
         return sum + parseInt(a.value || '0');
       }
       return sum;
     }, 0);
 
     const revenue = actionValues.reduce((sum: number, a: any) => {
-      if (['offsite_conversion.fb_pixel_purchase', 'purchase'].includes(a.action_type)) {
+      if ([
+          'offsite_conversion.fb_pixel_purchase',
+          'purchase',
+          'onsite_conversion.messaging_conversation_started_7d',
+        ].includes(a.action_type)) {
         return sum + parseFloat(a.value || '0');
       }
       return sum;

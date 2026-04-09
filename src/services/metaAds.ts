@@ -189,10 +189,15 @@ export function normalizeMetaInsight(insight: MetaInsight) {
     parseFloat(values.find(a => a.action_type === type)?.value || '0');
 
   const spend = parseFloat(insight.spend);
-  const conversions = getAction('offsite_conversion.fb_pixel_purchase')
+  const conversions = getAction('onsite_conversion.messaging_conversation_started_7d')
+    || getAction('onsite_conversion.messaging_first_reply')
+    || getAction('offsite_conversion.fb_pixel_purchase')
+    || getAction('offsite_conversion.fb_pixel_lead')
     || getAction('lead')
+    || getAction('contact')
     || getAction('complete_registration');
-  const revenue = getValue('offsite_conversion.fb_pixel_purchase');
+  const revenue = getValue('offsite_conversion.fb_pixel_purchase')
+    || getValue('onsite_conversion.messaging_conversation_started_7d');
 
   return {
     date: insight.date_start,
