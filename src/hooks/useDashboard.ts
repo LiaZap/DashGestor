@@ -112,7 +112,7 @@ function parseMetaCampaigns(data: any): Campaign[] {
       id: c.id,
       name: c.name,
       platform: 'meta' as const,
-      status: c.status === 'ACTIVE' ? 'active' as const : c.status === 'PAUSED' ? 'paused' as const : 'ended' as const,
+      status: c.status === 'ACTIVE' ? 'active' as const : (c.status === 'PAUSED' || c.status === 'DISABLED') ? 'paused' as const : 'ended' as const,
       budget,
       spent: spend,
       impressions,

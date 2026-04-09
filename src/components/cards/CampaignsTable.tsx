@@ -57,7 +57,7 @@ export function CampaignsTable({ campaigns, searchQuery, onSearchChange }: Props
   const handlePDF = () => {
     setDropdownOpen(false);
     const rows = campaignsToExportRows(campaigns);
-    exportToPDF('Campanhas Ativas', rows, PDF_COLUMNS);
+    exportToPDF('Campanhas', rows, PDF_COLUMNS);
   };
 
   return (
@@ -68,7 +68,7 @@ export function CampaignsTable({ campaigns, searchQuery, onSearchChange }: Props
     >
       <GlassCard padding="0">
         <div className={styles.header}>
-          <h3 className={styles.title}>Campanhas Ativas</h3>
+          <h3 className={styles.title}>Campanhas</h3>
           <div className={styles.actions}>
             <div className={styles.searchBox}>
               <Search size={14} className={styles.searchIcon} />
@@ -114,7 +114,7 @@ export function CampaignsTable({ campaigns, searchQuery, onSearchChange }: Props
                 <th>Impressões</th>
                 <th>Cliques</th>
                 <th>CTR</th>
-                <th>Conversões</th>
+                <th>Resultados</th>
                 <th>CPA</th>
                 <th>ROAS</th>
               </tr>
