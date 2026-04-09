@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { generateDailyMetrics, getKPIs, campaigns as mockCampaigns } from '../data/mockData';
 import type { Campaign, DailyMetric } from '../data/mockData';
 import { fetchDashboardOverview } from '../services/api';
-import { isMetaConfigured, isGoogleConfigured } from '../services/apiConfig';
 
 export type Period = '7d' | '14d' | '30d' | '90d';
 export type Platform = 'all' | 'meta' | 'google';
@@ -144,17 +143,16 @@ export function useDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hasApiConfig = isMetaConfigured() || isGoogleConfigured();
-
-  // Fetch real data from backend API
+  // Always try API - backend has tokens in env vars even if localStorage is empty
   const fetchData = useCallback(async () => {
-    if (!hasApiConfig) return;
 
     setLoading(true);
     setError(null);
 
     try {
+      console.log('[GestorDash] Fetching from API...', { period, platform });
       const overview = await fetchDashboardOverview(period, platform);
+      console.log('[GestorDash] API response:', overview);
 
       // Parse daily metrics from Meta insights
       const metaDaily = overview.meta && !overview.meta.error
@@ -170,6 +168,8 @@ export function useDashboard() {
         ? parseGoogleCampaigns(overview.googleCampaigns)
         : [];
 
+      console.log('[GestorDash] Parsed:', { metaDaily: metaDaily.length, metaCamps: metaCamps.length, googleCamps: googleCamps.length });
+
       if (metaDaily.length > 0) {
         setApiDailyMetrics(metaDaily);
       }
@@ -179,12 +179,12 @@ export function useDashboard() {
         setApiCampaigns(allCampaigns);
       }
     } catch (e) {
-      console.error('Dashboard API error:', e);
+      console.error('[GestorDash] API error:', e);
       setError((e as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [period, platform, hasApiConfig]);
+  }, [period, platform]);
 
   useEffect(() => {
     fetchData();
