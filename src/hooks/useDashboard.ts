@@ -24,33 +24,15 @@ function parseMetaInsights(data: any): DailyMetric[] {
     const actions = row.actions || [];
     const actionValues = row.action_values || [];
 
-    const conversions = actions.reduce((sum: number, a: any) => {
-      if ([
-          'onsite_conversion.messaging_conversation_started_7d',
-          'onsite_conversion.messaging_first_reply',
-          'offsite_conversion.fb_pixel_purchase',
-          'offsite_conversion.fb_pixel_lead',
-          'lead',
-          'complete_registration',
-          'purchase',
-          'contact',
-          'submit_application',
-        ].includes(a.action_type)) {
-        return sum + parseInt(a.value || '0');
-      }
-      return sum;
-    }, 0);
+    const conversions = parseInt(
+      actions.find((a: any) => a.action_type === 'onsite_conversion.messaging_conversation_started_7d')?.value || '0'
+    );
 
-    const revenue = actionValues.reduce((sum: number, a: any) => {
-      if ([
-          'offsite_conversion.fb_pixel_purchase',
-          'purchase',
-          'onsite_conversion.messaging_conversation_started_7d',
-        ].includes(a.action_type)) {
-        return sum + parseFloat(a.value || '0');
-      }
-      return sum;
-    }, 0);
+    const revenue = parseFloat(
+      actionValues.find((a: any) => a.action_type === 'onsite_conversion.messaging_conversation_started_7d')?.value
+      || actionValues.find((a: any) => a.action_type === 'offsite_conversion.fb_pixel_purchase')?.value
+      || '0'
+    );
 
     return {
       date: row.date_start,
@@ -78,33 +60,15 @@ function parseMetaCampaigns(data: any): Campaign[] {
     const actions = insights.actions || [];
     const actionValues = insights.action_values || [];
 
-    const conversions = actions.reduce((sum: number, a: any) => {
-      if ([
-          'onsite_conversion.messaging_conversation_started_7d',
-          'onsite_conversion.messaging_first_reply',
-          'offsite_conversion.fb_pixel_purchase',
-          'offsite_conversion.fb_pixel_lead',
-          'lead',
-          'complete_registration',
-          'purchase',
-          'contact',
-          'submit_application',
-        ].includes(a.action_type)) {
-        return sum + parseInt(a.value || '0');
-      }
-      return sum;
-    }, 0);
+    const conversions = parseInt(
+      actions.find((a: any) => a.action_type === 'onsite_conversion.messaging_conversation_started_7d')?.value || '0'
+    );
 
-    const revenue = actionValues.reduce((sum: number, a: any) => {
-      if ([
-          'offsite_conversion.fb_pixel_purchase',
-          'purchase',
-          'onsite_conversion.messaging_conversation_started_7d',
-        ].includes(a.action_type)) {
-        return sum + parseFloat(a.value || '0');
-      }
-      return sum;
-    }, 0);
+    const revenue = parseFloat(
+      actionValues.find((a: any) => a.action_type === 'onsite_conversion.messaging_conversation_started_7d')?.value
+      || actionValues.find((a: any) => a.action_type === 'offsite_conversion.fb_pixel_purchase')?.value
+      || '0'
+    );
 
     const budget = parseFloat(c.daily_budget || c.lifetime_budget || '0') / 100;
 
