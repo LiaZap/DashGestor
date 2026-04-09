@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import {
   Calendar, Layers, Grid3X3, Target, ChevronDown,
-  LayoutDashboard, Share2, Globe, BarChart3,
+  LayoutDashboard, BarChart3,
 } from 'lucide-react';
+import { MetaLogo } from '../icons/MetaLogo';
+import { GoogleAdsLogo } from '../icons/GoogleAdsLogo';
+import { AppLogo } from '../icons/AppLogo';
 import type { Period, Platform } from '../../hooks/useDashboard';
 import { AccountSwitcher } from '../ui/AccountSwitcher';
 import { NotificationsPanel } from '../ui/NotificationsPanel';
@@ -20,10 +23,13 @@ interface FilterOption {
   label: string;
 }
 
+const MetaIcon = ({ size = 20 }: { size?: number }) => <MetaLogo size={size} color="currentColor" />;
+const GoogleIcon = ({ size = 20 }: { size?: number }) => <GoogleAdsLogo size={size} />;
+
 const mobileNavItems = [
   { id: 'overview', icon: LayoutDashboard, label: 'Dashboard' },
-  { id: 'meta-ads', icon: Share2, label: 'Meta' },
-  { id: 'google-ads', icon: Globe, label: 'Google' },
+  { id: 'meta-ads', icon: MetaIcon, label: 'Meta' },
+  { id: 'google-ads', icon: GoogleIcon, label: 'Google' },
   { id: 'campanhas', icon: BarChart3, label: 'Campanhas' },
   { id: 'orcamento', icon: Target, label: 'Orçamento' },
 ];
@@ -70,7 +76,7 @@ export function TopBar({
       {/* Header Pill */}
       <header className={styles.headerPill}>
         <div className={styles.headerLeft}>
-          <div className={styles.headerLogo}>G</div>
+          <div className={styles.headerLogo}><AppLogo size={18} /></div>
           <span className={styles.headerTitle}>
             Dashboard <span className={styles.headerSep}>|</span> Geral
           </span>

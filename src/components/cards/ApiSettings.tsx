@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Check, AlertCircle, Key, Globe, Share2 } from 'lucide-react';
+import { Check, AlertCircle, Key, Globe } from 'lucide-react';
+import { MetaLogo } from '../icons/MetaLogo';
+import { GoogleAdsLogo } from '../icons/GoogleAdsLogo';
 import { GlassCard } from '../ui/GlassCard';
 import {
   getMetaConfig, saveMetaConfig,
@@ -39,7 +41,7 @@ export function ApiSettings() {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.platformIcon} style={{ background: 'rgba(255, 215, 0, 0.1)', color: '#ffd700' }}>
-              <Share2 size={18} />
+              <MetaLogo size={22} color="#0668E1" />
             </div>
             <div>
               <h3 className={styles.title}>Meta Ads API</h3>
@@ -93,7 +95,7 @@ export function ApiSettings() {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.platformIcon} style={{ background: 'rgba(0, 210, 106, 0.1)', color: '#00d26a' }}>
-              <Globe size={18} />
+              <GoogleAdsLogo size={22} />
             </div>
             <div>
               <h3 className={styles.title}>Google Ads API</h3>

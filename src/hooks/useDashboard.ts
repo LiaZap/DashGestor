@@ -1,5 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
-import { generateDailyMetrics, getKPIs, campaigns } from '../data/mockData';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { generateDailyMetrics, getKPIs, campaigns as mockCampaigns } from '../data/mockData';
+import type { Campaign, DailyMetric } from '../data/mockData';
+import { fetchDashboardOverview } from '../services/api';
+import { isMetaConfigured, isGoogleConfigured } from '../services/apiConfig';
 
 export type Period = '7d' | '14d' | '30d' | '90d';
 export type Platform = 'all' | 'meta' | 'google';
@@ -11,6 +14,123 @@ const periodDays: Record<Period, number> = {
   '90d': 90,
 };
 
+/** Transforms Meta insights API response into DailyMetric[] */
+function parseMetaInsights(data: any): DailyMetric[] {
+  if (!data?.data || !Array.isArray(data.data)) return [];
+  return data.data.map((row: any) => {
+    const spend = parseFloat(row.spend || '0');
+    const impressions = parseInt(row.impressions || '0');
+    const clicks = parseInt(row.clicks || '0');
+    const ctr = parseFloat(row.ctr || '0');
+    const actions = row.actions || [];
+    const actionValues = row.action_values || [];
+
+    const conversions = actions.reduce((sum: number, a: any) => {
+      if (['offsite_conversion.fb_pixel_purchase', 'lead', 'complete_registration', 'purchase'].includes(a.action_type)) {
+        return sum + parseInt(a.value || '0');
+      }
+      return sum;
+    }, 0);
+
+    const revenue = actionValues.reduce((sum: number, a: any) => {
+      if (['offsite_conversion.fb_pixel_purchase', 'purchase'].includes(a.action_type)) {
+        return sum + parseFloat(a.value || '0');
+      }
+      return sum;
+    }, 0);
+
+    return {
+      date: row.date_start,
+      investment: spend,
+      revenue,
+      impressions,
+      clicks,
+      conversions,
+      cpa: conversions > 0 ? spend / conversions : 0,
+      roas: spend > 0 ? revenue / spend : 0,
+      ctr,
+    };
+  });
+}
+
+/** Transforms Meta campaigns API response into Campaign[] */
+function parseMetaCampaigns(data: any): Campaign[] {
+  if (!data?.data || !Array.isArray(data.data)) return [];
+  return data.data.map((c: any) => {
+    const insights = c.insights?.data?.[0] || {};
+    const spend = parseFloat(insights.spend || '0');
+    const impressions = parseInt(insights.impressions || '0');
+    const clicks = parseInt(insights.clicks || '0');
+    const ctr = parseFloat(insights.ctr || '0');
+    const actions = insights.actions || [];
+    const actionValues = insights.action_values || [];
+
+    const conversions = actions.reduce((sum: number, a: any) => {
+      if (['offsite_conversion.fb_pixel_purchase', 'lead', 'complete_registration', 'purchase'].includes(a.action_type)) {
+        return sum + parseInt(a.value || '0');
+      }
+      return sum;
+    }, 0);
+
+    const revenue = actionValues.reduce((sum: number, a: any) => {
+      if (['offsite_conversion.fb_pixel_purchase', 'purchase'].includes(a.action_type)) {
+        return sum + parseFloat(a.value || '0');
+      }
+      return sum;
+    }, 0);
+
+    const budget = parseFloat(c.daily_budget || c.lifetime_budget || '0') / 100;
+
+    return {
+      id: c.id,
+      name: c.name,
+      platform: 'meta' as const,
+      status: c.status === 'ACTIVE' ? 'active' as const : c.status === 'PAUSED' ? 'paused' as const : 'ended' as const,
+      budget,
+      spent: spend,
+      impressions,
+      clicks,
+      conversions,
+      revenue,
+      ctr,
+      cpa: conversions > 0 ? spend / conversions : 0,
+      roas: spend > 0 ? revenue / spend : 0,
+      objective: c.objective || 'Conversão',
+    };
+  });
+}
+
+/** Transforms Google campaigns API response (searchStream) into Campaign[] */
+function parseGoogleCampaigns(data: any): Campaign[] {
+  if (!data || data.error) return [];
+  const results = Array.isArray(data) ? data.flatMap((batch: any) => batch.results || []) : [];
+  return results.map((row: any) => {
+    const spent = (row.metrics?.costMicros || 0) / 1_000_000;
+    const impressions = parseInt(row.metrics?.impressions || '0');
+    const clicks = parseInt(row.metrics?.clicks || '0');
+    const conversions = parseFloat(row.metrics?.conversions || '0');
+    const revenue = parseFloat(row.metrics?.conversionsValue || '0');
+    const budget = (row.campaignBudget?.amountMicros || 0) / 1_000_000;
+
+    return {
+      id: String(row.campaign?.id || ''),
+      name: row.campaign?.name || '',
+      platform: 'google' as const,
+      status: (row.campaign?.status || '').toLowerCase() === 'enabled' ? 'active' as const : 'paused' as const,
+      budget,
+      spent,
+      impressions,
+      clicks,
+      conversions,
+      revenue,
+      ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
+      cpa: conversions > 0 ? spent / conversions : 0,
+      roas: spent > 0 ? revenue / spent : 0,
+      objective: row.campaign?.advertisingChannelType || 'Conversão',
+    };
+  });
+}
+
 export function useDashboard() {
   const [period, setPeriod] = useState<Period>('7d');
   const [platform, setPlatform] = useState<Platform>('all');
@@ -19,7 +139,62 @@ export function useDashboard() {
   const [selectedAdGroup, setSelectedAdGroup] = useState('all');
   const [selectedObjective, setSelectedObjective] = useState('all');
 
-  const dailyMetrics = useMemo(() => generateDailyMetrics(periodDays[period]), [period]);
+  const [apiDailyMetrics, setApiDailyMetrics] = useState<DailyMetric[] | null>(null);
+  const [apiCampaigns, setApiCampaigns] = useState<Campaign[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasApiConfig = isMetaConfigured() || isGoogleConfigured();
+
+  // Fetch real data from backend API
+  const fetchData = useCallback(async () => {
+    if (!hasApiConfig) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const overview = await fetchDashboardOverview(period, platform);
+
+      // Parse daily metrics from Meta insights
+      const metaDaily = overview.meta && !overview.meta.error
+        ? parseMetaInsights(overview.meta)
+        : [];
+
+      // Parse campaigns
+      const metaCamps = overview.metaCampaigns && !overview.metaCampaigns.error
+        ? parseMetaCampaigns(overview.metaCampaigns)
+        : [];
+
+      const googleCamps = overview.googleCampaigns && !overview.googleCampaigns.error
+        ? parseGoogleCampaigns(overview.googleCampaigns)
+        : [];
+
+      if (metaDaily.length > 0) {
+        setApiDailyMetrics(metaDaily);
+      }
+
+      const allCampaigns = [...metaCamps, ...googleCamps];
+      if (allCampaigns.length > 0) {
+        setApiCampaigns(allCampaigns);
+      }
+    } catch (e) {
+      console.error('Dashboard API error:', e);
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [period, platform, hasApiConfig]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Use API data when available, fallback to mock
+  const campaigns = apiCampaigns || mockCampaigns;
+  const dailyMetrics = useMemo(() => {
+    return apiDailyMetrics || generateDailyMetrics(periodDays[period]);
+  }, [apiDailyMetrics, period]);
 
   // Filter campaigns based on all active filters
   const filteredCampaigns = useMemo(() => {
@@ -38,7 +213,7 @@ export function useDashboard() {
       result = result.filter(c => c.name.toLowerCase().includes(q));
     }
     return result;
-  }, [platform, selectedCampaign, selectedObjective, searchQuery]);
+  }, [campaigns, platform, selectedCampaign, selectedObjective, searchQuery]);
 
   // Scale daily metrics based on how many campaigns are selected vs total
   const scaledDailyMetrics = useMemo(() => {
@@ -59,7 +234,7 @@ export function useDashboard() {
       roas: m.roas,
       ctr: m.ctr,
     }));
-  }, [dailyMetrics, filteredCampaigns]);
+  }, [dailyMetrics, campaigns, filteredCampaigns]);
 
   const kpis = useMemo(() => getKPIs(scaledDailyMetrics), [scaledDailyMetrics]);
 
@@ -78,7 +253,7 @@ export function useDashboard() {
       { name: 'Meta Ads', value: Math.round((metaSpent / total) * 100), spent: metaSpent },
       { name: 'Google Ads', value: Math.round((googleSpent / total) * 100), spent: googleSpent },
     ];
-  }, [filteredCampaigns]);
+  }, [filteredCampaigns, campaigns]);
 
   // Derive available filter options from campaigns
   const campaignOptions = useMemo(() => {
@@ -86,24 +261,23 @@ export function useDashboard() {
     if (platform !== 'all') pool = pool.filter(c => c.platform === platform);
     if (selectedObjective !== 'all') pool = pool.filter(c => c.objective === selectedObjective);
     return pool.map(c => ({ value: c.id, label: c.name }));
-  }, [platform, selectedObjective]);
+  }, [campaigns, platform, selectedObjective]);
 
   const objectiveOptions = useMemo(() => {
     let pool = campaigns;
     if (platform !== 'all') pool = pool.filter(c => c.platform === platform);
     const objectives = [...new Set(pool.map(c => c.objective))];
     return objectives.map(o => ({ value: o, label: o }));
-  }, [platform]);
+  }, [campaigns, platform]);
 
   const adGroupOptions = useMemo(() => {
-    // Simulated ad groups derived from campaigns
-    let pool = filteredCampaigns.length > 0 ? filteredCampaigns : campaigns;
+    const pool = filteredCampaigns.length > 0 ? filteredCampaigns : campaigns;
     return pool.map(c => ({ value: c.id, label: `${c.name.split(' - ')[0]} - Grupo` }));
-  }, [filteredCampaigns]);
+  }, [filteredCampaigns, campaigns]);
 
   const refresh = useCallback(() => {
-    // In production, this would refetch from APIs
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   return {
     period,
@@ -126,5 +300,8 @@ export function useDashboard() {
     objectiveOptions,
     adGroupOptions,
     refresh,
+    loading,
+    error,
+    isUsingRealData: apiDailyMetrics !== null || apiCampaigns !== null,
   };
 }
