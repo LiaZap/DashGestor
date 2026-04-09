@@ -1,0 +1,267 @@
+.topBarWrapper {
+  padding: 10px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- Header Pill ---- */
+.headerPill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111;
+  border: 1px solid rgba(255, 215, 0, 0.06);
+  border-radius: 50px;
+  padding: 8px 8px 8px 16px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerLogo {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #ffd700, #f5a623);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #0a0a0a;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.headerTitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.headerSep {
+  color: #444;
+  margin: 0 3px;
+  font-weight: 400;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accountBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ffd700, #f5a623);
+  border: none;
+  border-radius: 50px;
+  padding: 6px 14px 6px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a0a0a;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.25);
+  transition: box-shadow 0.2s;
+}
+
+.accountBtn:hover {
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.35);
+}
+
+.accountAvatar {
+  width: 22px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ---- Filter Bar ---- */
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 2px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.filterBar::-webkit-scrollbar {
+  display: none;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filterIcon {
+  color: #555;
+  flex-shrink: 0;
+}
+
+.filterLabel {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filterChevron {
+  color: #555;
+  flex-shrink: 0;
+}
+
+.filterDivider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.filterSelect {
+  appearance: none;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  font-family: var(--font);
+  max-width: 140px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Period Filter */
+.periodFilter {
+  display: flex;
+  background: #161616;
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid rgba(255, 215, 0, 0.06);
+}
+
+.periodBtn {
+  position: relative;
+  padding: 3px 9px;
+  border: none;
+  background: none;
+  color: #555;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  transition: color 0.2s;
+  z-index: 1;
+}
+
+.periodBtn:hover {
+  color: #999;
+}
+
+.periodActive {
+  color: #0a0a0a;
+  font-weight: 700;
+}
+
+.periodBg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ffd700, #f5a623);
+  border-radius: 5px;
+  z-index: -1;
+}
+
+/* ---- Mobile Bottom Nav ---- */
+.mobileNav {
+  display: none;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .topBarWrapper {
+    padding: 8px 10px 0;
+  }
+  .filterBar {
+    display: flex;
+    padding: 4px 0;
+    gap: 0;
+  }
+  .headerTitle {
+    font-size: 12px;
+  }
+  .headerPill {
+    padding: 6px 6px 6px 12px;
+  }
+  .accountBtn {
+    padding: 5px 10px 5px 5px;
+    font-size: 11px;
+  }
+  .accountBtn span {
+    display: none;
+  }
+  .filterSelect {
+    max-width: 100px;
+    font-size: 11px;
+  }
+  .mobileNav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0e0e0e;
+    border-top: 1px solid rgba(255, 215, 0, 0.08);
+    padding: 6px 0 env(safe-area-inset-bottom, 6px);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 200;
+    backdrop-filter: blur(12px);
+  }
+  .mobileNavBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: #555;
+    padding: 6px 12px;
+    font-size: 9px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .mobileNavBtn:hover,
+  .mobileNavActive {
+    color: #ffd700;
+  }
+}
+
+@media (max-width: 480px) {
+  .topBarWrapper {
+    padding: 6px 8px 0;
+  }
+  .headerLogo {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+}

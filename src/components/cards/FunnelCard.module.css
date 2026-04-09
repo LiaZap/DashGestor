@@ -1,0 +1,112 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.typeSelect {
+  appearance: none;
+  background: #0e0e0e;
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  color: #888;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font);
+}
+
+/* ---- Layout ---- */
+.funnelLayout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.svgWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.svg {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4));
+}
+
+/* ---- Side Metrics ---- */
+.sideMetrics {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  min-height: 320px;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.metricRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.rateBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.06);
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  padding: 1px 8px;
+  border-radius: 10px;
+  width: fit-content;
+  margin-bottom: 2px;
+}
+
+.costCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.costLabel {
+  font-size: 8.5px;
+  font-weight: 500;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.costValue {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #bbb;
+}
+
+@media (max-width: 600px) {
+  .funnelLayout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .sideMetrics {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: auto;
+    justify-content: center;
+  }
+  .metricRow {
+    align-items: center;
+    text-align: center;
+  }
+}

@@ -1,0 +1,55 @@
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  letter-spacing: -0.2px;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.barItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.barLabel {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.barValues {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.barTrack {
+  height: 10px;
+  background: #0e0e0e;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.04);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 5px;
+}
+
+.barPercent {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  align-self: flex-end;
+}

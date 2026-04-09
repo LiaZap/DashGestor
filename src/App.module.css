@@ -1,0 +1,127 @@
+.main {
+  flex: 1;
+  min-height: 100vh;
+  margin-left: 52px;
+  background: #0a0a0a;
+}
+
+.content {
+  padding: 10px 16px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---- Main 3-Column Grid ---- */
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+/* Left: KPI cards + chart */
+.kpiSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+/* Center: Funnel */
+.funnelSection {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Right: Top Campaigns */
+.rightSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: visible;
+}
+
+/* Charts row */
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.chartsRowThree {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+/* Settings */
+.settingsPage {
+  max-width: 700px;
+}
+
+/* ---- Responsive ---- */
+
+/* Large tablet / small desktop */
+@media (max-width: 1200px) {
+  .mainGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rightSection {
+    grid-column: 1 / -1;
+  }
+  .chartsRowThree {
+    grid-template-columns: 1fr 1fr;
+  }
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .main {
+    margin-left: 0;
+    padding-bottom: 70px; /* space for mobile nav */
+  }
+  .content {
+    padding: 10px 12px 30px;
+    gap: 10px;
+  }
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+  .rightSection {
+    grid-column: auto;
+  }
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+  .chartsRowThree {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .content {
+    padding: 8px 8px 24px;
+    gap: 8px;
+  }
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+}
