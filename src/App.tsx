@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginPage } from './components/pages/LoginPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
 import { KPICard } from './components/cards/KPICard';
@@ -21,7 +23,8 @@ import { useDashboard } from './hooks/useDashboard';
 import './styles/global.css';
 import styles from './App.module.css';
 
-export default function App() {
+function Dashboard() {
+  const { user, logout } = useAuth();
   const [activePage, setActivePage] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
@@ -125,6 +128,8 @@ export default function App() {
         onPageChange={setActivePage}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        userName={user?.name}
+        onLogout={logout}
       />
 
       <main className={styles.main}>
@@ -148,6 +153,7 @@ export default function App() {
           objectiveOptions={objectiveOptions}
           onRefresh={refresh}
           onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          userName={user?.name}
         />
 
         <div className={styles.content}>
@@ -155,5 +161,23 @@ export default function App() {
         </div>
       </main>
     </>
+  );
+}
+
+function AppContent() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return <Dashboard />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

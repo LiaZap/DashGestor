@@ -54,6 +54,7 @@ interface TopBarProps {
   objectiveOptions: FilterOption[];
   onRefresh: () => void;
   onMenuToggle: () => void;
+  userName?: string;
 }
 
 export function TopBar({
@@ -74,7 +75,9 @@ export function TopBar({
   campaignOptions,
   adGroupOptions,
   objectiveOptions,
+  userName,
 }: TopBarProps) {
+  const userInitial = userName ? userName[0].toUpperCase() : 'A';
   return (
     <div className={styles.topBarWrapper}>
       {/* Header Pill */}
@@ -90,8 +93,8 @@ export function TopBar({
           <AccountSwitcher
             trigger={(onClick) => (
               <button className={styles.accountBtn} onClick={onClick} type="button">
-                <div className={styles.accountAvatar}>A</div>
-                <span>Conta</span>
+                <div className={styles.accountAvatar}>{userInitial}</div>
+                <span>{userName || 'Conta'}</span>
                 <ChevronDown size={14} />
               </button>
             )}

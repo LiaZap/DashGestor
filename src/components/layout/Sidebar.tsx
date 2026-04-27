@@ -5,6 +5,7 @@ import {
   Settings,
   Megaphone,
   Wallet,
+  LogOut,
 } from 'lucide-react';
 import { MetaLogo } from '../icons/MetaLogo';
 import { GoogleAdsLogo } from '../icons/GoogleAdsLogo';
@@ -29,9 +30,15 @@ interface SidebarProps {
   onPageChange: (page: string) => void;
   collapsed: boolean;
   onToggle: () => void;
+  userName?: string;
+  onLogout?: () => void;
 }
 
-export function Sidebar({ activePage, onPageChange }: SidebarProps) {
+export function Sidebar({ activePage, onPageChange, userName, onLogout }: SidebarProps) {
+  const initials = userName
+    ? userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logoWrap}>
@@ -59,6 +66,22 @@ export function Sidebar({ activePage, onPageChange }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Bottom: User avatar + Logout */}
+      <div className={styles.bottomSection}>
+        <div className={styles.userAvatar} title={userName || 'Usuário'}>
+          {initials}
+        </div>
+        {onLogout && (
+          <button
+            className={styles.logoutBtn}
+            onClick={onLogout}
+            title="Sair"
+          >
+            <LogOut size={16} />
+          </button>
+        )}
+      </div>
     </aside>
   );
 }

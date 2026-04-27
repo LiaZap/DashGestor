@@ -4,23 +4,10 @@ import { getMetaConfig, getGoogleConfig } from './apiConfig';
 const API_URL = env.apiUrl;
 const AUTH_TOKEN_KEY = 'gestordash_auth_token';
 
-async function ensureAuth(): Promise<string> {
-  let token = localStorage.getItem(AUTH_TOKEN_KEY);
-  if (token) return token;
-
-  // Auto-login with default credentials
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'admin@gestordash.com', password: 'admin123' }),
-  });
-
-  if (!res.ok) throw new Error('Falha na autenticação');
-
-  const data = await res.json();
-  token = data.token;
-  localStorage.setItem(AUTH_TOKEN_KEY, token!);
-  return token!;
+function getToken(): string {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (!token) throw new Error('Não autenticado');
+  return token;
 }
 
 function buildHeaders(authToken: string): Record<string, string> {
@@ -46,7 +33,7 @@ function buildHeaders(authToken: string): Record<string, string> {
 }
 
 export async function apiFetch<T = any>(endpoint: string, params?: Record<string, string>): Promise<T> {
-  const authToken = await ensureAuth();
+  const authToken = getToken();
   const headers = buildHeaders(authToken);
 
   const url = new URL(`${API_URL}${endpoint}`);
@@ -57,13 +44,9 @@ export async function apiFetch<T = any>(endpoint: string, params?: Record<string
   const res = await fetch(url.toString(), { headers });
 
   if (res.status === 401) {
-    // Token expired, re-login
+    // Token expired — clear and force re-login
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    const newToken = await ensureAuth();
-    const retryHeaders = buildHeaders(newToken);
-    const retry = await fetch(url.toString(), { headers: retryHeaders });
-    if (!retry.ok) throw new Error(`API Error: ${retry.status}`);
-    return retry.json();
+    throw new Error('Sessão expirada. Faça login novamente.');
   }
 
   if (!res.ok) {
