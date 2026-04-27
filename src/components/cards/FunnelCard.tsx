@@ -284,8 +284,10 @@ export function FunnelCard({ dailyMetrics, totalSpend }: FunnelCardProps) {
             const rate = i > 0 && !isCtr && !prevIsPercent
               ? ((step.value / funnelData[i - 1].value) * 100).toFixed(1)
               : null;
+            // CPM = (spend / impressions) * 1000; others = spend / value
+            const isCpm = costLabels[i] === 'CPM';
             const costPer = !isCtr && step.value > 0
-              ? (spend / step.value).toFixed(2).replace('.', ',')
+              ? (isCpm ? (spend / step.value * 1000) : (spend / step.value)).toFixed(2).replace('.', ',')
               : '0,00';
             const isHovered = hoveredIndex === i;
             const isDimmed = hoveredIndex !== null && hoveredIndex !== i;

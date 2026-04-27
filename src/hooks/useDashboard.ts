@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { generateDailyMetrics, getKPIs, campaigns as mockCampaigns } from '../data/mockData';
-import type { Campaign, DailyMetric } from '../data/mockData';
+import type { Campaign, DailyMetric, AccountInfo } from '../data/mockData';
 import { fetchDashboardOverview } from '../services/api';
 
 export type Period = '7d' | '14d' | '30d' | '90d' | 'custom';
@@ -76,12 +76,14 @@ function parseMetaCampaigns(data: any): Campaign[] {
     );
 
     const budget = parseFloat(c.daily_budget || c.lifetime_budget || '0') / 100;
+    const budgetType = c.daily_budget ? 'daily' as const : 'lifetime' as const;
 
     return {
       id: c.id,
       name: c.name,
       platform: 'meta' as const,
       status: c.status === 'ACTIVE' ? 'active' as const : (c.status === 'PAUSED' || c.status === 'DISABLED') ? 'paused' as const : 'ended' as const,
+      budgetType,
       budget,
       spent: spend,
       impressions,
@@ -113,6 +115,7 @@ function parseGoogleCampaigns(data: any): Campaign[] {
       name: row.campaign?.name || '',
       platform: 'google' as const,
       status: (row.campaign?.status || '').toLowerCase() === 'enabled' ? 'active' as const : 'paused' as const,
+      budgetType: 'daily' as const,
       budget,
       spent,
       impressions,
@@ -138,6 +141,7 @@ export function useDashboard() {
 
   const [apiDailyMetrics, setApiDailyMetrics] = useState<DailyMetric[] | null>(null);
   const [apiCampaigns, setApiCampaigns] = useState<Campaign[] | null>(null);
+  const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -179,6 +183,18 @@ export function useDashboard() {
       const allCampaigns = [...metaCamps, ...googleCamps];
       if (allCampaigns.length > 0) {
         setApiCampaigns(allCampaigns);
+      }
+
+      // Parse account info (balance, spend cap, etc.)
+      if (overview.metaAccount && !overview.metaAccount.error) {
+        const acc = overview.metaAccount;
+        setAccountInfo({
+          name: acc.name || '',
+          balance: parseInt(acc.balance || '0') / 100,
+          amountSpent: parseInt(acc.amount_spent || '0') / 100,
+          spendCap: parseInt(acc.spend_cap || '0') / 100,
+          currency: acc.currency || 'BRL',
+        });
       }
     } catch (e) {
       console.error('[GestorDash] API error:', e);
@@ -286,6 +302,7 @@ export function useDashboard() {
     setPeriod,
     customDateRange,
     setCustomDateRange,
+    accountInfo,
     platform,
     setPlatform,
     searchQuery,

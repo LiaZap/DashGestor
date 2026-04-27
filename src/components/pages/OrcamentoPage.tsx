@@ -14,7 +14,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { GlassCard } from '../ui/GlassCard';
-import type { Campaign } from '../../data/mockData';
+import type { Campaign, AccountInfo } from '../../data/mockData';
 import styles from './OrcamentoPage.module.css';
 
 function fmt(value: number): string {
@@ -39,12 +39,14 @@ function barColor(pct: number): string {
 
 interface OrcamentoPageProps {
   campaigns: Campaign[];
+  accountInfo?: AccountInfo | null;
 }
 
-export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
-  const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
+export function OrcamentoPage({ campaigns, accountInfo }: OrcamentoPageProps) {
+  const totalDailyBudget = campaigns.reduce((s, c) => s + c.budget, 0);
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
-  const saldo = totalBudget - totalSpent;
+  // Saldo disponível vem da conta Meta (balance), ou calcula como fallback
+  const saldoDisponivel = accountInfo ? accountInfo.balance / 100 : 0;
 
   // Platform budget breakdown
   const platformBudget = useMemo(() => {
@@ -83,7 +85,7 @@ export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
 
   // Projected vs actual spend over 30 days
   const projectedData = useMemo(() => {
-    const dailyBudget = totalBudget > 0 ? totalBudget / 30 : 1;
+    const dailyBudget = totalDailyBudget > 0 ? totalDailyBudget : 1;
     const dailyActual = totalSpent > 0 ? totalSpent / 30 : 1;
     return Array.from({ length: 30 }, (_, i) => {
       const day = i + 1;
@@ -96,7 +98,7 @@ export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
           : null,
       };
     });
-  }, [totalBudget, totalSpent]);
+  }, [totalDailyBudget, totalSpent]);
 
   const statusLabel: Record<string, string> = {
     active: 'Ativo',
@@ -120,16 +122,21 @@ export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
       {/* KPI Row */}
       <div className={styles.kpiRow}>
         <GlassCard delay={0.05} padding="14px">
-          <div className={styles.kpiLabel}>Orçamento Total</div>
-          <div className={styles.kpiValueGold}>{fmt(totalBudget)}</div>
+          <div className={styles.kpiLabel}>Orçamento Diário</div>
+          <div className={styles.kpiValueGold}>{fmt(totalDailyBudget)}</div>
         </GlassCard>
         <GlassCard delay={0.1} padding="14px">
           <div className={styles.kpiLabel}>Total Gasto</div>
           <div className={styles.kpiValueRed}>{fmt(totalSpent)}</div>
         </GlassCard>
         <GlassCard delay={0.15} padding="14px">
-          <div className={styles.kpiLabel}>Saldo Disponível</div>
-          <div className={styles.kpiValueGreen}>{fmt(saldo)}</div>
+          <div className={styles.kpiLabel}>Saldo na Conta</div>
+          <div className={styles.kpiValueGreen}>
+            {accountInfo ? fmt(saldoDisponivel) : 'Carregando...'}
+          </div>
+          {accountInfo && (
+            <div className={styles.kpiSub}>Limite diário: {fmt(accountInfo.balance / 100)}</div>
+          )}
         </GlassCard>
       </div>
 
@@ -221,17 +228,18 @@ export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
               <tr>
                 <th>Campanha</th>
                 <th>Plataforma</th>
-                <th>Orçamento</th>
-                <th>Gasto</th>
-                <th>Restante</th>
-                <th>% Utilizado</th>
+                <th>Orç. Diário</th>
+                <th>Gasto (período)</th>
+                <th>Gasto/dia (média)</th>
+                <th>% vs Diário</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {campaigns.map((c) => {
-                const pct = c.budget > 0 ? (c.spent / c.budget) * 100 : 0;
-                const remaining = c.budget - c.spent;
+                // Média de gasto diário vs orçamento diário
+                const avgDailySpend = c.spent > 0 ? c.spent / 7 : 0; // approximate from period
+                const pct = c.budget > 0 ? (avgDailySpend / c.budget) * 100 : 0;
                 return (
                   <tr key={c.id}>
                     <td>{c.name}</td>
@@ -246,7 +254,7 @@ export function OrcamentoPage({ campaigns }: OrcamentoPageProps) {
                     </td>
                     <td>{fmt(c.budget)}</td>
                     <td>{fmt(c.spent)}</td>
-                    <td>{fmt(remaining)}</td>
+                    <td>{fmt(avgDailySpend)}</td>
                     <td>
                       <div className={styles.cellBar}>
                         <div className={styles.cellBarTrack}>

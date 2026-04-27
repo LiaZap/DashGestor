@@ -4,6 +4,7 @@ export interface Campaign {
   platform: 'meta' | 'google';
   status: 'active' | 'paused' | 'ended';
   budget: number;
+  budgetType: 'daily' | 'lifetime';
   spent: number;
   impressions: number;
   clicks: number;
@@ -13,6 +14,14 @@ export interface Campaign {
   cpa: number;
   roas: number;
   objective: string;
+}
+
+export interface AccountInfo {
+  name: string;
+  balance: number;     // saldo disponivel em centavos
+  amountSpent: number; // total gasto em centavos
+  spendCap: number;    // limite de gastos em centavos
+  currency: string;
 }
 
 export interface DailyMetric {
@@ -44,6 +53,7 @@ export const campaigns: Campaign[] = [
     name: 'Remarketing - Carrinho Abandonado',
     platform: 'meta',
     status: 'active',
+    budgetType: 'daily',
     budget: 3000,
     spent: 2340,
     impressions: 189432,
@@ -60,6 +70,7 @@ export const campaigns: Campaign[] = [
     name: 'Brand - Institucional',
     platform: 'google',
     status: 'active',
+    budgetType: 'daily',
     budget: 2500,
     spent: 1890,
     impressions: 156789,
@@ -76,6 +87,7 @@ export const campaigns: Campaign[] = [
     name: 'Lookalike 1% - Compradores',
     platform: 'meta',
     status: 'active',
+    budgetType: 'daily',
     budget: 4000,
     spent: 3120,
     impressions: 312456,
@@ -92,6 +104,7 @@ export const campaigns: Campaign[] = [
     name: 'Search - Produto Principal',
     platform: 'google',
     status: 'active',
+    budgetType: 'daily',
     budget: 3200,
     spent: 2560,
     impressions: 98234,
@@ -108,6 +121,7 @@ export const campaigns: Campaign[] = [
     name: 'Interesse - Público Frio',
     platform: 'meta',
     status: 'active',
+    budgetType: 'daily',
     budget: 2000,
     spent: 1540,
     impressions: 289345,
@@ -124,6 +138,7 @@ export const campaigns: Campaign[] = [
     name: 'Display - Remarketing GDN',
     platform: 'google',
     status: 'paused',
+    budgetType: 'daily',
     budget: 1000,
     spent: 650,
     impressions: 145678,
@@ -140,6 +155,7 @@ export const campaigns: Campaign[] = [
     name: 'Stories - Promoção Semanal',
     platform: 'meta',
     status: 'active',
+    budgetType: 'daily',
     budget: 800,
     spent: 350,
     impressions: 53898,
@@ -156,6 +172,7 @@ export const campaigns: Campaign[] = [
     name: 'Shopping - Catálogo Completo',
     platform: 'google',
     status: 'active',
+    budgetType: 'daily',
     budget: 2800,
     spent: 2100,
     impressions: 234567,
@@ -172,6 +189,7 @@ export const campaigns: Campaign[] = [
     name: 'Reels - Criativo A/B Test',
     platform: 'meta',
     status: 'active',
+    budgetType: 'daily',
     budget: 1500,
     spent: 980,
     impressions: 178234,
@@ -188,6 +206,7 @@ export const campaigns: Campaign[] = [
     name: 'Performance Max - Geral',
     platform: 'google',
     status: 'active',
+    budgetType: 'daily',
     budget: 3500,
     spent: 2890,
     impressions: 345678,

@@ -47,6 +47,7 @@ export default function App() {
     campaignOptions,
     objectiveOptions,
     adGroupOptions,
+    accountInfo,
     refresh,
   } = useDashboard();
 
@@ -61,7 +62,7 @@ export default function App() {
       case 'anuncios':
         return <AnunciosPage campaigns={filteredCampaigns} />;
       case 'orcamento':
-        return <OrcamentoPage campaigns={filteredCampaigns} />;
+        return <OrcamentoPage campaigns={filteredCampaigns} accountInfo={accountInfo} />;
       case 'relatorios':
         return <div className={styles.settingsPage}><ApiSettings /></div>;
       default:

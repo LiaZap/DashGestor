@@ -49,6 +49,12 @@
   color: #22c55e;
 }
 
+.kpiSub {
+  font-size: 10px;
+  color: #555;
+  margin-top: 2px;
+}
+
 .kpiValueRed {
   composes: kpiValue;
   color: #ef4444;
