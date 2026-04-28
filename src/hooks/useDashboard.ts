@@ -186,8 +186,10 @@ export function useDashboard() {
       }
 
       // Parse account info (balance, spend cap, etc.)
+      console.log('[GestorDash] metaAccount raw:', overview.metaAccount);
       if (overview.metaAccount && !overview.metaAccount.error) {
         const acc = overview.metaAccount;
+        // Meta API retorna valores em centavos (string)
         setAccountInfo({
           name: acc.name || '',
           balance: parseInt(acc.balance || '0') / 100,
@@ -195,6 +197,8 @@ export function useDashboard() {
           spendCap: parseInt(acc.spend_cap || '0') / 100,
           currency: acc.currency || 'BRL',
         });
+      } else {
+        console.warn('[GestorDash] metaAccount error or missing:', overview.metaAccount);
       }
     } catch (e) {
       console.error('[GestorDash] API error:', e);
