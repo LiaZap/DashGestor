@@ -85,3 +85,7 @@ export async function fetchGoogleMetrics(period: string) {
 export async function fetchGoogleCampaigns(period: string) {
   return apiFetch('/google/campaigns', { period });
 }
+
+export async function fetchMetaAccountInfo() {
+  return apiFetch('/meta/account');
+}

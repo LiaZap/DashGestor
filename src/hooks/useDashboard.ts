@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { generateDailyMetrics, getKPIs, campaigns as mockCampaigns } from '../data/mockData';
 import type { Campaign, DailyMetric, AccountInfo } from '../data/mockData';
-import { fetchDashboardOverview } from '../services/api';
+import { fetchDashboardOverview, fetchMetaAccountInfo } from '../services/api';
 
 export type Period = '7d' | '14d' | '30d' | '90d' | 'custom';
 export type Platform = 'all' | 'meta' | 'google';
@@ -185,11 +185,9 @@ export function useDashboard() {
         setApiCampaigns(allCampaigns);
       }
 
-      // Parse account info (balance, spend cap, etc.)
-      console.log('[GestorDash] metaAccount raw:', overview.metaAccount);
+      // Parse account info from overview (if backend updated)
       if (overview.metaAccount && !overview.metaAccount.error) {
         const acc = overview.metaAccount;
-        // Meta API retorna valores em centavos (string)
         setAccountInfo({
           name: acc.name || '',
           balance: parseInt(acc.balance || '0') / 100,
@@ -198,7 +196,22 @@ export function useDashboard() {
           currency: acc.currency || 'BRL',
         });
       } else {
-        console.warn('[GestorDash] metaAccount error or missing:', overview.metaAccount);
+        // Fallback: buscar via rota separada /meta/account
+        try {
+          const acc = await fetchMetaAccountInfo();
+          console.log('[GestorDash] Meta account (separate):', acc);
+          if (acc && !acc.error) {
+            setAccountInfo({
+              name: acc.name || '',
+              balance: parseInt(acc.balance || '0') / 100,
+              amountSpent: parseInt(acc.amount_spent || '0') / 100,
+              spendCap: parseInt(acc.spend_cap || '0') / 100,
+              currency: acc.currency || 'BRL',
+            });
+          }
+        } catch (accErr) {
+          console.warn('[GestorDash] Meta account fetch failed:', accErr);
+        }
       }
     } catch (e) {
       console.error('[GestorDash] API error:', e);

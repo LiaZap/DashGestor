@@ -46,11 +46,6 @@ export function OrcamentoPage({ campaigns, accountInfo }: OrcamentoPageProps) {
   const activeCampaigns = campaigns.filter(c => c.status === 'active');
   const totalDailyBudget = activeCampaigns.reduce((s, c) => s + c.budget, 0);
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
-  // Saldo: usa balance da conta Meta se disponível, senão calcula restante do orçamento
-  const saldoDisponivel = accountInfo && accountInfo.balance > 0
-    ? accountInfo.balance
-    : totalDailyBudget - (totalSpent > 0 ? totalSpent / 7 : 0); // restante diário estimado
-
   // Platform budget breakdown
   const platformBudget = useMemo(() => {
     const meta = campaigns.filter(c => c.platform === 'meta');
@@ -127,17 +122,17 @@ export function OrcamentoPage({ campaigns, accountInfo }: OrcamentoPageProps) {
         <GlassCard delay={0.05} padding="14px">
           <div className={styles.kpiLabel}>Orçamento Diário</div>
           <div className={styles.kpiValueGold}>{fmt(totalDailyBudget)}</div>
+          <div className={styles.kpiSub}>{activeCampaigns.length} campanha{activeCampaigns.length !== 1 ? 's' : ''} ativa{activeCampaigns.length !== 1 ? 's' : ''}</div>
         </GlassCard>
         <GlassCard delay={0.1} padding="14px">
           <div className={styles.kpiLabel}>Total Gasto</div>
           <div className={styles.kpiValueRed}>{fmt(totalSpent)}</div>
+          <div className={styles.kpiSub}>no período selecionado</div>
         </GlassCard>
         <GlassCard delay={0.15} padding="14px">
-          <div className={styles.kpiLabel}>
-            {accountInfo && accountInfo.balance > 0 ? 'Saldo na Conta' : 'Restante Diário'}
-          </div>
-          <div className={saldoDisponivel >= 0 ? styles.kpiValueGreen : styles.kpiValueRed}>
-            {fmt(saldoDisponivel)}
+          <div className={styles.kpiLabel}>Saldo na Conta</div>
+          <div className={accountInfo && accountInfo.balance > 0 ? styles.kpiValueGreen : styles.kpiValueMuted}>
+            {accountInfo && accountInfo.balance > 0 ? fmt(accountInfo.balance) : 'Indisponível'}
           </div>
           {accountInfo && accountInfo.spendCap > 0 && (
             <div className={styles.kpiSub}>Limite: {fmt(accountInfo.spendCap)}</div>

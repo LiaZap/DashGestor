@@ -65,6 +65,12 @@
   color: #ffd700;
 }
 
+.kpiValueMuted {
+  composes: kpiValue;
+  color: #555;
+  font-size: 16px;
+}
+
 /* Two-column grid */
 .twoColGrid {
   display: grid;
