@@ -45,8 +45,10 @@ interface OrcamentoPageProps {
 export function OrcamentoPage({ campaigns, accountInfo }: OrcamentoPageProps) {
   const totalDailyBudget = campaigns.reduce((s, c) => s + c.budget, 0);
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
-  // Saldo disponível vem da conta Meta (balance) - já convertido de centavos no hook
-  const saldoDisponivel = accountInfo ? accountInfo.balance : 0;
+  // Saldo: usa balance da conta Meta se disponível, senão calcula restante do orçamento
+  const saldoDisponivel = accountInfo && accountInfo.balance > 0
+    ? accountInfo.balance
+    : totalDailyBudget - (totalSpent > 0 ? totalSpent / 7 : 0); // restante diário estimado
 
   // Platform budget breakdown
   const platformBudget = useMemo(() => {
@@ -130,8 +132,10 @@ export function OrcamentoPage({ campaigns, accountInfo }: OrcamentoPageProps) {
           <div className={styles.kpiValueRed}>{fmt(totalSpent)}</div>
         </GlassCard>
         <GlassCard delay={0.15} padding="14px">
-          <div className={styles.kpiLabel}>Saldo na Conta</div>
-          <div className={styles.kpiValueGreen}>
+          <div className={styles.kpiLabel}>
+            {accountInfo && accountInfo.balance > 0 ? 'Saldo na Conta' : 'Restante Diário'}
+          </div>
+          <div className={saldoDisponivel >= 0 ? styles.kpiValueGreen : styles.kpiValueRed}>
             {fmt(saldoDisponivel)}
           </div>
           {accountInfo && accountInfo.spendCap > 0 && (
