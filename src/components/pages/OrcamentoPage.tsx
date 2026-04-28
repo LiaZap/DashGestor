@@ -43,7 +43,8 @@ interface OrcamentoPageProps {
 }
 
 export function OrcamentoPage({ campaigns, accountInfo }: OrcamentoPageProps) {
-  const totalDailyBudget = campaigns.reduce((s, c) => s + c.budget, 0);
+  const activeCampaigns = campaigns.filter(c => c.status === 'active');
+  const totalDailyBudget = activeCampaigns.reduce((s, c) => s + c.budget, 0);
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
   // Saldo: usa balance da conta Meta se disponível, senão calcula restante do orçamento
   const saldoDisponivel = accountInfo && accountInfo.balance > 0
